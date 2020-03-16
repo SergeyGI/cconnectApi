@@ -18,7 +18,7 @@ router.get('/api', (req, res) => {
 })
 
 router.get('/text', (req, res) => {
-  res.download('./file/123.txt')
+  res.download('./public/readme.txt')
 })
 
 router.use((req, res) => {
