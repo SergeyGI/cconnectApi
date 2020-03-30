@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "nodemon src/index.js",
-    "mongo": "docker run --name some-mongo --rm -p 27017:27017 -d mongo"
+    "mongo": "docker run --name some-mongo --rm -v /db:/data/db -p 27017:27017 -d mongo"
   },
   "dependencies": {
     "express": "^4.17.1",
