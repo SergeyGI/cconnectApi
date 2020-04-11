@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "cross-env NODE_ENV=development nodemon src/index.js",
+    "start": "cross-env NODE_ENV=development nodemon --delay 1 src/index.js",
     "debug": "cross-env NODE_ENV=development nodemon --debug src/index.js",
     "test": "cross-env NODE_ENV=test babel-tape-runner test/test-*.js",
     "pretest": "eslint .",
@@ -12,9 +12,11 @@
     "mongo": "docker run --name some-mongo --rm -v /db:/data/db -p 27017:27017 -d mongo"
   },
   "dependencies": {
+    "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "cross-env": "^7.0.2",
     "express": "^4.17.1",
+    "express-async-handler": "^1.1.4",
     "helmet": "^3.22.0",
     "mongoose": "^5.9.7",
     "only": "^0.0.2"

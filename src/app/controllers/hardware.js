@@ -1,95 +1,81 @@
 /** @format */
 
 const mongoose = require('mongoose')
+const asyncHandler = require('express-async-handler')
 const only = require('only')
 
 const Hardware = mongoose.model('Hardware')
 
 module.exports = {
-  load: async (req, res, next, id) => {
-    try {
-      const error = new Error('Оборудование не найдено')
-      if (!mongoose.isValidObjectId(id)) return next(error)
-      req.hardware = await Hardware.load(id)
-      if (!req.hardware) return next(error)
-    } catch (err) {
-      return next(err)
-    }
+  load: asyncHandler(async (req, res, next, id) => {
+    const err = { status: 404, message: 'Оборудование не найдено' }
+
+    if (!mongoose.isValidObjectId(id)) return next(err)
+
+    req.hardware = await Hardware.load(id)
+
+    if (!req.hardware) return next(err)
     next()
-  },
+  }),
+  /* CREATE */
+  create: asyncHandler(async (req, res) => {
+    const hardware = new Hardware(
+      only(
+        req.body,
+        'name vendor model ipAddress radiusSecret installationAddress status',
+      ),
+    )
 
-  create: async (req, res) => {
-    try {
-      const hardware = new Hardware(
-        only(
-          req.body,
-          'name vendor model ipAddress radiusSecret installationAddress status',
-        ),
-      )
-      await hardware.save()
-      res.sendStatus(200)
-    } catch {
-      res.sendStatus(422)
+    const curentHardware = await hardware.save()
+    res.status(200).json(curentHardware)
+  }),
+  /* LIST */
+  list: asyncHandler(async (req, res) => {
+    const page = (req.query.page > 0 ? req.query.page : 1) - 1
+    const limit = req.query.limit > 0 ? req.query.limit : 15
+    const _id = req.query.item
+    const options = { limit, page }
+
+    if (_id) options.criteria = { _id }
+
+    const hardwares = await Hardware.list(options)
+    const count = await Hardware.countDocuments()
+
+    res.status(200).json({
+      hardwares,
+      page: page + 1,
+      pages: Math.ceil(count / limit),
+      count,
+    })
+  }),
+
+  show: asyncHandler(async (req, res) => {
+    const currentHardware = req.hardware
+    res.status(200).json(currentHardware)
+  }),
+
+  update: asyncHandler(async (req, res) => {
+    const id = req.hardware.id
+    const optionsUpdateHardware = {
+      new: true,
+      useFindAndModify: false,
+      runValidators: true,
     }
-  },
+    const currentHardware = await Hardware.findByIdAndUpdate(
+      id,
+      only(
+        req.body,
+        'name vendor model ipAddress radiusSecret installationAddress status',
+      ),
+      optionsUpdateHardware,
+    )
 
-  list: async (req, res) => {
-    try {
-      const page = (req.query.page > 0 ? req.query.page : 1) - 1
-      const limit = req.query.limit > 0 ? req.query.limit : 15
-      const _id = req.query.item
-      const options = { limit, page }
+    res.status(200).json(currentHardware)
+  }),
 
-      if (_id) options.criteria = { _id }
-
-      const hardwares = await Hardware.list(options)
-      const count = await Hardware.countDocuments()
-
-      res.status(200).json({
-        hardwares,
-        page: page + 1,
-        pages: Math.ceil(count / limit),
-        count,
-      })
-    } catch {
-      res.sendStatus(422)
-    }
-  },
-
-  show: async (req, res) => {
-    try {
-      res.status(200).json(req.hardware)
-    } catch {
-      res.sendStatus(422)
-    }
-  },
-
-  update: async (req, res) => {
-    try {
-      const _id = req.hardware._id
-      const optionsUpdateHardware = { new: true, useFindAndModify: false }
-      console.log(111)
-      const currentHardware = await Hardware.findByIdAndUpdate(
-        { _id },
-        only(
-          req.body,
-          'name vendor model ipAddress radiusSecret installationAddress status',
-        ),
-        optionsUpdateHardware,
-      )
-
-      console.log(222)
-      res.status(200).json(currentHardware)
-    } catch {
-      res.sendStatus(422)
-    }
-  },
-
-  destroy: async (req, res) => {
-    const ref = req.headers.referer
-    await req.hardware.remove()
-    req.flash('warning', `Оборудование ${req.hardware.name} удалено`)
-    if (ref) res.redirect(ref)
-    else res.redirect('/hardwares')
-  },
+  destroy: asyncHandler(async (req, res) => {
+    const currentHardware = req.hardware
+    await currentHardware.remove()
+    res.status(200).json('Destroy')
+  }),
 }

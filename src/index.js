@@ -2,11 +2,12 @@
 
 const express = require('express')
 const mongoose = require('mongoose')
+const bluebird = require('bluebird')
 const fs = require('fs')
 const join = require('path').join
 
-const models = join(__dirname, 'app/models')
 const config = require('./config')
+const models = join(config.root, 'app/models')
 const app = express()
 const optionsMongo = {
   keepAlive: true,
@@ -26,12 +27,14 @@ const listen = () => {
   app.listen(config.port)
   console.log(`Server running on port ${config.port}`)
 }
+
 const connect = () => {
-  mongoose.connection
-    .once('open', listen)
-    .on('error', console.log)
-    .on('disconnected', connect)
-  return mongoose.connect(config.db, optionsMongo)
+  mongoose.Promise = bluebird
+  mongoose.connect(config.db, optionsMongo)
+  return mongoose.connection
 }
 
 connect()
+  .once('open', listen)
+  .on('error', console.log)
+  .on('disconnected', connect)

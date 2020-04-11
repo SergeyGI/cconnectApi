@@ -11,5 +11,5 @@ module.exports = app => {
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use('/', router)
-  app.use(handlingErrors)
+  app.use(...handlingErrors)
 }

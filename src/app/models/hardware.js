@@ -3,45 +3,63 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const proper = require('../validate/ip')
+
 const HardwareSchema = new Schema({
-  name: { type: String },
+  name: {
+    type: String,
+    required: [true, 'Введите имя объекта'],
+  },
   vendor: { type: String },
   model: { type: String },
-  ipAddress: { type: String },
-  radiusSecret: { type: String },
+  ipAddress: {
+    type: String,
+    required: [true, 'Введите IP адрес'],
+  },
+  radiusSecret: {
+    type: String,
+    required: [true, 'Обязательное поле <radiusSecret>'],
+  },
   installationAddress: { type: String },
   status: { type: Boolean, default: true },
   createdDate: { type: Date, default: Date.now },
   updateDate: { type: Date, default: Date.now },
 })
 
-// Валидация
-HardwareSchema.path('name').validate(function (name) {
+HardwareSchema.path('name').validate(name => {
   return name.length
-}, '<name> cannot be blank')
+}, 'Введите имя объекта')
 
-HardwareSchema.path('model').validate(function (model) {
-  return model.length
-}, '<model> cannot be blank')
+HardwareSchema.path('ipAddress').validate(ip => {
+  // return ip.length && proper(ip)
+  return proper(ip)
+}, 'Введите корректный IP адрес')
 
-HardwareSchema.path('ipAddress').validate(function (ipAddress) {
-  return ipAddress.length
-}, '<ipAddress> cannot be blank')
+HardwareSchema.path('radiusSecret').validate(radiusSecret => {
+  return radiusSecret.length > 5
+}, 'Секретный ключ должен содержать больше 5 символов')
 
-HardwareSchema.path('radiusSecret').validate(function (radiusSecret) {
-  return radiusSecret.length
-}, '<radiusSecret> cannot be blank')
-
-HardwareSchema.path('installationAddress').validate(function (
-  installationAddress,
-) {
-  return installationAddress.length
-},
-'<installationAddress> cannot be blank')
+// При обновлении документа увеличиваем его версию
+HardwareSchema.pre('findOneAndUpdate', function () {
+  const update = this.getUpdate()
+  if (update.__v != null) {
+    delete update.__v
+  }
+  const keys = ['$set', '$setOnInsert']
+  for (const key of keys) {
+    if (update[key] != null && update[key].__v != null) {
+      delete update[key].__v
+      if (Object.keys(update[key]).length === 0) {
+        delete update[key]
+      }
+    }
+  }
+  update.$inc = update.$inc || {}
+  update.$inc.__v = 1
+})
 
 HardwareSchema.statics = {
   load: function (id) {
-    console.log(mongoose.isValidObjectId(id))
     return this.findById(id).populate('user', 'name').exec()
   },
 

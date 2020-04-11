@@ -10,11 +10,11 @@ routes.all('*', (req, res, next) => {
   next()
 })
 /* CRUD Hardware */
-routes.param('hardwareId', hardware.load) // ++++
-routes.get('/hardware', hardware.list) // ++++
-routes.get('/hardware/:hardwareId', hardware.show) // ++++
-routes.post('/hardware', hardware.create) // ++++
-routes.delete('/hardware/:hardwareId', hardware.destroy)
-routes.put('/hardware/:hardwareId', hardware.update)
+routes.param('hardwareId', hardware.load)
+routes.get('/hardwares', hardware.list)
+routes.post('/hardwares', hardware.create)
+routes.get('/hardwares/:hardwareId', hardware.show)
+routes.put('/hardwares/:hardwareId', hardware.update)
+routes.delete('/hardwares/:hardwareId', hardware.destroy)
 
 module.exports = routes
