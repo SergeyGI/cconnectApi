@@ -31,8 +31,8 @@ module.exports = {
   }),
   /* LIST */
   list: asyncHandler(async (req, res) => {
-    const page = (req.query.page > 0 ? req.query.page : 1) - 1
-    const limit = req.query.limit > 0 ? req.query.limit : 15
+    const page = (req.query.page > 0 ? Number(req.query.page) : 1) - 1
+    const limit = req.query.limit > 0 ? Number(req.query.limit) : 15
     const _id = req.query.item
     const options = { limit, page }
 
@@ -45,7 +45,6 @@ module.exports = {
       hardwares,
       page: page + 1,
       pages: Math.ceil(count / limit),
-      count,
     })
   }),
 
