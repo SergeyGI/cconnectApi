@@ -7,6 +7,7 @@ const only = require('only')
 const Hardware = mongoose.model('Hardware')
 
 module.exports = {
+  /* LOAD TO ID */
   load: asyncHandler(async (req, res, next, id) => {
     const err = { status: 404, message: 'Оборудование не найдено' }
 
@@ -17,6 +18,7 @@ module.exports = {
     if (!req.hardware) return next(err)
     next()
   }),
+
   /* CREATE */
   create: asyncHandler(async (req, res) => {
     const hardware = new Hardware(
@@ -29,6 +31,7 @@ module.exports = {
     const curentHardware = await hardware.save()
     res.status(200).json(curentHardware)
   }),
+
   /* LIST */
   list: asyncHandler(async (req, res) => {
     const page = (req.query.page > 0 ? Number(req.query.page) : 1) - 1
@@ -48,11 +51,13 @@ module.exports = {
     })
   }),
 
+  /* SHOW */
   show: asyncHandler(async (req, res) => {
     const currentHardware = req.hardware
     res.status(200).json(currentHardware)
   }),
 
+  /* UPDATE */
   update: asyncHandler(async (req, res) => {
     const id = req.hardware.id
     const optionsUpdateHardware = {
@@ -72,6 +77,7 @@ module.exports = {
     res.status(200).json(currentHardware)
   }),
 
+  /* DESTROY */
   destroy: asyncHandler(async (req, res) => {
     const currentHardware = req.hardware
     await currentHardware.remove()

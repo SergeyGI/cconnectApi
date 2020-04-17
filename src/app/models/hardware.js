@@ -3,7 +3,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const validIp = require('../validate/ip')
+const validateIp = require('../validate/ip')
 
 const HardwareSchema = new Schema({
   name: { type: String },
@@ -14,6 +14,7 @@ const HardwareSchema = new Schema({
   installationAddress: { type: String },
   status: { type: Boolean, default: true },
   createdDate: { type: Date, default: Date.now },
+  updatedDate: { type: Date, default: Date.now },
 })
 
 HardwareSchema.path('name')
@@ -25,7 +26,7 @@ HardwareSchema.path('name')
 HardwareSchema.path('ipAddress')
   .required(true, 'Введите IP адрес')
   .validate(ip => {
-    return ip.length && validIp(ip)
+    return ip.length && validateIp(ip)
   }, 'Введите корректный IP адрес')
 
 HardwareSchema.path('radiusSecret')
@@ -34,8 +35,9 @@ HardwareSchema.path('radiusSecret')
     return radiusSecret.length > 5
   }, 'Секретный ключ должен содержать больше 5 символов')
 
-// При обновлении документа увеличиваем его версию
+// При обновлении документа увеличиваем его версию и дату обновления
 HardwareSchema.pre('findOneAndUpdate', function () {
+  this.set({ updatedDate: new Date() })
   const update = this.getUpdate()
   if (update.__v != null) {
     delete update.__v
